@@ -1,0 +1,6 @@
+{
+	"token" : "your personal access token for github",
+	"user" : "github username",
+	"repo" : "repo you wish to push into",
+	"lang" : "programming language"
+}

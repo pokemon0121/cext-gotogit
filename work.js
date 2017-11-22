@@ -1,29 +1,36 @@
-var user = 'pokemon0121';
-var repo = 'LC';
-var lang = 'java';
-
-
-
+var user = null;
+var repo = null;
+var lang = null;
+var token = null;
 var problemName = null;
-var codeReady = false;
 var code = '';
 
-chrome.tabs.query({active : true, lastFocusedWindow: true}, function(array_of_tabs){
-	var tab = array_of_tabs[0];
-	var words = tab.url.split('/');
-	$('.url').text(tab.url);
-	if (words.length < 4 || words[3] != 'problems')
-		$('.problom-name').text("Not on a problem's page!");
-	else {
-		$('.problom-name').text(words[4]);
-		problemName = words[4];
-		$('#go').prop("disabled", false);
-	} 
-});
+// load config json data
+// load succeeded, then get problem name
+// when page is fully loaded then get code
+// get code succeeded, activate button
+start();
+
+function getProblemName() {
+	chrome.tabs.query({active : true, currentWindow: true}, function(array_of_tabs){
+		var tab = array_of_tabs[0];
+		var words = tab.url.split('/');
+		$('.url').text(tab.url);
+		if (words.length < 4 || words[3] != 'problems') {
+			$('.problom-name').text("Not on a problem's page!");
+			$('#message').text("Not on a problem's page!");
+			$('#notification').text("Not on a problem's page!");
+			return null;
+		}
+		else {
+			$('.problom-name').text(words[4]);
+			return words[4];
+		} 
+	});
+}
 
 chrome.runtime.onMessage.addListener(function(request, sender) {
   if (request.action == "getSource") {
-  	codeReady = false;
   	code = '';
   	var preview = '';
     var codeArea = $($.parseHTML(request.source)).find('pre.CodeMirror-line');
@@ -32,26 +39,29 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
     	preview = preview + codeArea.eq(i).text() + "<br>";
     };
     $('#message').html("code ready:<br>" + preview);
-    codeReady = true;
+    $('#go').prop("disabled", false); // only here to enable button
   }
 });
 
 $('#go').click(function() {
-  if (codeReady) {
-    shipIt(problemName);
-    $('#go').prop("disabled", true);
-  }
+	if (problemName != null) {
+	    shipIt(problemName);
+	    $('#go').prop("disabled", true);
+	}
+	else {
+		$('#notification').text('cannot find problem name.')
+	}
 })
 
 $(window).load(function() {
-  chrome.tabs.executeScript(null, {
-    file: "getPagesSource.js"
-  }, function() {
-    // If you try and inject into an extensions page or the webstore/NTP you'll get an error
-    if (chrome.runtime.lastError) {
-      $('#message').text('There was an error injecting script : \n' + chrome.runtime.lastError.message);
-    }
-  });
+  	chrome.tabs.executeScript(null, {
+    	file: "getPagesSource.js"
+  	}, function() {
+    	// If you try and inject into an extensions page or the webstore/NTP you'll get an error
+    	if (chrome.runtime.lastError) {
+      		$('#message').text('There was an error injecting script : \n' + chrome.runtime.lastError.message);
+    	}
+  	});
 });
 
 function createFile(pName) {
@@ -63,7 +73,7 @@ function createFile(pName) {
 	    cache: false,
 	    data: '{"message": "auto-create-file commit", "content": "' + getData() + '"}',
 	    beforeSend: function(xhr) { 
-	        xhr.setRequestHeader("Authorization", "token 0287808a57427be5e7892e2946a8f2d527100801"); 
+	        xhr.setRequestHeader("Authorization", "token " + token); 
 	    },
 	    success: (function(response) {
 		    //console.log(response);
@@ -82,7 +92,7 @@ function shipIt(pName) {
 	    contentType: "application/json",
 	    cache: false,
 	    beforeSend: function(xhr) { 
-	        xhr.setRequestHeader("Authorization", "token 0287808a57427be5e7892e2946a8f2d527100801"); 
+	        xhr.setRequestHeader("Authorization", "token " + token); 
 	    },
 	    success: (function(response) {
 		    //it exists
@@ -96,7 +106,7 @@ function shipIt(pName) {
 				createFile(pName);
 			}
 			else {
-				$('.github-info').text("Unexpected");
+				$('.github-info').text("status: " + xhr.status + ", responseText: " + xhr.responseText);
 			}
 		})
 	});
@@ -111,7 +121,7 @@ function updateFile(pName, sha) {
 	    cache: false,
 	    data: '{"message": "auto-update-file commit", "content": "' + getData() + '", "sha": "' + sha + '"}',
 	    beforeSend: function(xhr) { 
-	        xhr.setRequestHeader("Authorization", "token 0287808a57427be5e7892e2946a8f2d527100801"); 
+	        xhr.setRequestHeader("Authorization", "token " + token); 
 	    },
 	    success: (function(response) {
 		    //console.log(response);
@@ -127,4 +137,26 @@ function getData() {
 	//var data = "Updated/Created at " + new Date($.now()) + ".";
 	//console.log(data)
 	return btoa(unescape(encodeURIComponent(code)));
+}
+
+function start() {
+	// load config
+	$.ajax({
+		url: chrome.runtime.getURL('/config.json'),
+		method: 'GET',
+		dataType: 'json',
+		cache: 'false',
+		success: (function(response) {
+			//console.log(response);
+			user = response.user;
+			token = response.token;
+			repo = response.repo;
+			lang = response.lang;
+			problemName = getProblemName();
+		}),
+		error: (function(xhr) {
+			$('#notification').text('loading config file failed.  ' + "status: " + xhr.status + ", responseText: " + xhr.responseText);
+			$('#go').prop("disabled", true);
+		})
+	});
 }
