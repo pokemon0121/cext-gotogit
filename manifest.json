@@ -1,0 +1,28 @@
+{
+  // Required
+  "manifest_version": 2,
+  "name": "GoToGit",
+  "version": "1.0",
+
+  "description": "This helps you to upload the code in LC to your github repo",
+  "icons": { "16": "icon16.png",
+             "48": "icon48.png",
+             "128": "icon128.png" },
+
+
+  "page_action": {
+    "default_icon": "icon16.png",           
+    "default_title": "GoToGit",      
+    "default_popup": "popup.html"        
+    },
+
+  "content_security_policy":"script-src 'self' https://api.github.com; object-src 'self'",
+
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  
+  "permissions": ["tabs", "activeTab", "storage", "declarativeContent", "https://leetcode.com/*", "http://leetcode.com/*"]
+  
+}
