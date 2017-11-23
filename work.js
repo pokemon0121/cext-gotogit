@@ -18,12 +18,11 @@ chrome.tabs.query({active : true, currentWindow: true}, function(array_of_tabs){
 	else {
 		$('.problom-name').text(words[4]);
 		problemName = words[4];
+		// then start
+		start();
 	} 
 });
-if (problemName != null) {
-	// then proceed
-	start();
-}
+
 
 
 chrome.runtime.onMessage.addListener(function(request, sender) {
@@ -143,14 +142,11 @@ function start() {
 		method: 'GET',
 		dataType: 'json',
 		cache: 'false',
-		success: (function(response) {
-			//console.log(response);
+		success: (function(response) {			
 			user = response.user;
 			token = response.token;
 			repo = response.repo;
 			lang = response.lang;
-			problemName = getProblemName();
-			console.log(problemName);
 		}),
 		error: (function(xhr) {
 			$('#notification').text('loading config file failed.  ' + "status: " + xhr.status + ", responseText: " + xhr.responseText);
