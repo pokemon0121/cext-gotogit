@@ -5,29 +5,26 @@ var token = null;
 var problemName = null;
 var code = '';
 
-// load config json data
-// load succeeded, then get problem name
-// when page is fully loaded then get code
-// get code succeeded, activate button
-start();
 
-function getProblemName() {
-	chrome.tabs.query({active : true, currentWindow: true}, function(array_of_tabs){
-		var tab = array_of_tabs[0];
-		var words = tab.url.split('/');
-		$('.url').text(tab.url);
-		if (words.length < 4 || words[3] != 'problems') {
-			$('.problom-name').text("Not on a problem's page!");
-			$('#message').text("Not on a problem's page!");
-			$('#notification').text("Not on a problem's page!");
-			return null;
-		}
-		else {
-			$('.problom-name').text(words[4]);
-			return words[4];
-		} 
-	});
+chrome.tabs.query({active : true, currentWindow: true}, function(array_of_tabs){
+	var tab = array_of_tabs[0];
+	var words = tab.url.split('/');
+	$('.url').text(tab.url);
+	if (words.length < 4 || words[3] != 'problems') {
+		$('.problom-name').text("Not on a problem's page!");
+		$('#message').text("Not on a problem's page!");
+		$('#notification').text("Not on a problem's page!");
+	}
+	else {
+		$('.problom-name').text(words[4]);
+		problemName = words[4];
+	} 
+});
+if (problemName != null) {
+	// then proceed
+	start();
 }
+
 
 chrome.runtime.onMessage.addListener(function(request, sender) {
   if (request.action == "getSource") {
@@ -153,6 +150,7 @@ function start() {
 			repo = response.repo;
 			lang = response.lang;
 			problemName = getProblemName();
+			console.log(problemName);
 		}),
 		error: (function(xhr) {
 			$('#notification').text('loading config file failed.  ' + "status: " + xhr.status + ", responseText: " + xhr.responseText);
