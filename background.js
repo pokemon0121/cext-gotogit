@@ -17,12 +17,3 @@ chrome.runtime.onInstalled.addListener(function() {
     ]);
   });
 });
-
-/*
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-  if (changeInfo.status == 'complete') {
-    chrome.tabs.executeScript(null, {code: 'console.log("logging stuff here");'});
-  }
-  
-});
-*/

@@ -30,11 +30,12 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
   	code = '';
   	var preview = '';
     var codeArea = $($.parseHTML(request.source)).find('pre.CodeMirror-line');
+    console.log(codeArea)
     for (var i = 0; i < codeArea.length; i++) {
     	code = code + codeArea.eq(i).text() + "\n";
     	preview = preview + codeArea.eq(i).text() + "<br>";
     };
-    $('#message').html("code ready:<br>" + preview);
+    $('#message').html(preview);
     $('#go').prop("disabled", false); // only here to enable button
   }
 });
@@ -49,7 +50,7 @@ $('#go').click(function() {
 	}
 })
 
-$(window).load(function() {
+$(window).on('load', function() {
   	chrome.tabs.executeScript(null, {
     	file: "getPagesSource.js"
   	}, function() {
@@ -147,6 +148,7 @@ function start() {
 			token = response.token;
 			repo = response.repo;
 			lang = response.lang;
+			$('.github-info').text("Ready.");
 		}),
 		error: (function(xhr) {
 			$('#notification').text('loading config file failed.  ' + "status: " + xhr.status + ", responseText: " + xhr.responseText);

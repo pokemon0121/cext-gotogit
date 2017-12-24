@@ -3,3 +3,22 @@ body {
   white-space: nowrap
 }
 
+.url {
+	color: #4286f4;
+}
+
+.problom-name {
+	color: #dd1f7e;
+}
+
+.github-info {
+	color: #16992a;
+}
+
+#message {
+	color: #d16b1d;
+}
+
+#notification {
+	color: #9121ce;
+}
